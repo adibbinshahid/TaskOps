@@ -74,7 +74,10 @@ Rules:
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash',
     contents: [{ role: 'user', parts }],
-    config: { systemInstruction },
+    config: {
+      systemInstruction,
+      thinkingConfig: { thinkingBudget: 0 }, // disable extended thinking for fast classification
+    },
   });
 
   const rawText = response.text ?? '';

@@ -4,12 +4,12 @@ import { sendTelegramMessage } from './telegram';
 import type { TaskSource } from '@/types';
 import { CONFIDENCE_THRESHOLD } from './constants';
 
+// Used by Telegram webhook (not Vercel serverless — runs in full Node.js context)
 export async function processEntry(
   input: { text?: string; audioBase64?: string; mimeType?: string },
   source: TaskSource
 ): Promise<{ taskId: string }> {
   const db = createServerClient();
-
   const originalEntry = input.text?.trim() || '[voice note — transcribing]';
 
   const { data: task, error } = await db
@@ -27,41 +27,28 @@ export async function processEntry(
     meta: { source },
   });
 
-  // Fire-and-forget async processing
-  processAsync(task.id, input, source).catch((err) =>
-    console.error('processAsync unhandled:', err)
-  );
+  // For Telegram webhook route (persistent function), await directly
+  await processAsync(task.id, input, source);
 
   return { taskId: task.id };
 }
 
-async function processAsync(
+export async function processAsync(
   taskId: string,
   input: { text?: string; audioBase64?: string; mimeType?: string },
   source: TaskSource
 ) {
   const db = createServerClient();
-
   try {
     const [{ data: groups }, { data: corrections }] = await Promise.all([
       db.from('groups').select('name').order('name'),
-      db
-        .from('corrections')
-        .select('field_changed, old_value, new_value')
-        .order('created_at', { ascending: false })
-        .limit(20),
+      db.from('corrections').select('field_changed, old_value, new_value').order('created_at', { ascending: false }).limit(20),
     ]);
 
     const groupNames = (groups ?? []).map((g: { name: string }) => g.name);
-
     const result = await processWithGemini(input, groupNames, corrections ?? []);
 
-    const { data: group } = await db
-      .from('groups')
-      .select('id')
-      .eq('name', result.group)
-      .single();
-
+    const { data: group } = await db.from('groups').select('id').eq('name', result.group).single();
     const status = result.confidence >= CONFIDENCE_THRESHOLD ? 'active' : 'needs_review';
 
     const updates: Record<string, unknown> = {
@@ -75,51 +62,23 @@ async function processAsync(
       is_recurring: result.is_recurring,
       recurring_pattern: result.recurring_pattern ?? null,
     };
-
-    // If audio input, update original_entry with transcription result
-    if (input.audioBase64) {
-      updates.original_entry = result.refined_entry;
-    }
+    if (input.audioBase64) updates.original_entry = result.refined_entry;
 
     await db.from('tasks').update(updates).eq('id', taskId);
 
     await db.from('activity_log').insert([
-      {
-        task_id: taskId,
-        action: 'ai_classified',
-        actor: 'ai',
-        meta: {
-          group: result.group,
-          confidence: result.confidence,
-          reasoning: result.reasoning,
-        },
-      },
-      {
-        task_id: taskId,
-        action: 'ai_scheduled',
-        actor: 'ai',
-        meta: {
-          assigned_date: result.assigned_date,
-          reminder_time: result.reminder_time,
-        },
-      },
+      { task_id: taskId, action: 'ai_classified', actor: 'ai', meta: { group: result.group, confidence: result.confidence, reasoning: result.reasoning } },
+      { task_id: taskId, action: 'ai_scheduled', actor: 'ai', meta: { assigned_date: result.assigned_date, reminder_time: result.reminder_time } },
     ]);
 
     if (source === 'telegram_text' || source === 'telegram_voice') {
       const statusNote = status === 'needs_review' ? '\n⚠️ Low confidence — check Needs Review' : '';
-      await sendTelegramMessage(
-        `✅ <b>Task saved</b>\n\n${result.refined_entry}\n📁 <i>${result.group}</i>\n📅 ${result.assigned_date}${statusNote}`
-      );
+      await sendTelegramMessage(`✅ <b>Task saved</b>\n\n${result.refined_entry}\n📁 <i>${result.group}</i>\n📅 ${result.assigned_date}${statusNote}`);
     }
   } catch (err) {
     console.error('Gemini processing failed:', err);
     await db.from('tasks').update({ status: 'needs_review' }).eq('id', taskId);
-    await db.from('activity_log').insert({
-      task_id: taskId,
-      action: 'ai_classified',
-      actor: 'ai',
-      meta: { error: String(err) },
-    });
+    await db.from('activity_log').insert({ task_id: taskId, action: 'ai_classified', actor: 'ai', meta: { error: String(err) } });
     if (source === 'telegram_text' || source === 'telegram_voice') {
       await sendTelegramMessage(`⚠️ Task saved but AI processing failed. Check Needs Review.`);
     }
