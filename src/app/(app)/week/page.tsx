@@ -137,15 +137,39 @@ export default function WeekPage() {
     const { task, targetDate } = pendingMove;
     setPendingMove(null);
 
+    // Optimistic update
     setTasks((prev) =>
       prev.map((t) => (t.id === task.id ? { ...t, assigned_date: targetDate } : t))
     );
 
-    await fetch(`/api/tasks/${task.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ field: 'assigned_date', value: targetDate }),
-    });
+    try {
+      const res = await fetch(`/api/tasks/${task.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ field: 'assigned_date', value: targetDate }),
+      });
+
+      if (!res.ok) {
+        const err = await res.text();
+        console.error('Move failed:', res.status, err);
+        // Revert optimistic update
+        setTasks((prev) =>
+          prev.map((t) => (t.id === task.id ? { ...t, assigned_date: task.assigned_date } : t))
+        );
+        alert(`Move failed (${res.status}). Check console for details.`);
+        return;
+      }
+
+      // Re-sync from DB to confirm state matches
+      await loadTasks();
+    } catch (err) {
+      console.error('Move error:', err);
+      // Revert on network error
+      setTasks((prev) =>
+        prev.map((t) => (t.id === task.id ? { ...t, assigned_date: task.assigned_date } : t))
+      );
+      alert('Move failed — network error.');
+    }
   }
 
   function getTasksForDay(date: Date) {
