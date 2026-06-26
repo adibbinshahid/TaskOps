@@ -14,13 +14,21 @@ function todayStr() {
 
 export default function TodayPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [processing, setProcessing] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const { showUndo } = useUndo();
 
   async function loadTasks() {
-    const res = await fetch(`/api/tasks?date=${todayStr()}`);
-    const data = await res.json() as Task[];
-    setTasks(data.filter((t) => t.status !== 'deleted'));
+    const [todayRes, processingRes] = await Promise.all([
+      fetch(`/api/tasks?date=${todayStr()}`),
+      fetch(`/api/tasks?status=processing`),
+    ]);
+    const [todayData, processingData] = await Promise.all([
+      todayRes.json() as Promise<Task[]>,
+      processingRes.json() as Promise<Task[]>,
+    ]);
+    setTasks(todayData.filter((t) => t.status !== 'deleted'));
+    setProcessing(processingData);
   }
 
   useEffect(() => {
@@ -103,16 +111,29 @@ export default function TodayPage() {
 
       {loading ? (
         <div className="flex items-center justify-center py-24 text-white/30 text-sm">Loading…</div>
-      ) : Object.keys(groups).length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center py-24 text-white/25 text-sm"
-        >
-          No tasks for today. Go capture something!
-        </motion.div>
       ) : (
         <div className="space-y-8">
+          {/* Processing tasks — visible across all navigation */}
+          {processing.length > 0 && (
+            <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+              <h2 className="text-xs font-semibold text-white/40 uppercase tracking-widest mb-3 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-white/40 animate-pulse inline-block" />
+                Organising
+              </h2>
+              <div className="space-y-2">
+                {processing.map((task) => (
+                  <TaskCard key={task.id} task={task} showDate={false} showGroup={false} />
+                ))}
+              </div>
+            </motion.section>
+          )}
+
+          {Object.keys(groups).length === 0 && processing.length === 0 ? (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-24 text-white/25 text-sm">
+              No tasks for today. Go capture something!
+            </motion.div>
+          ) : (
+          <>
           {Object.entries(groups).map(([groupName, groupTasks]) => (
             <motion.section
               key={groupName}
@@ -138,6 +159,8 @@ export default function TodayPage() {
               </AnimatePresence>
             </motion.section>
           ))}
+          </>
+          )}
         </div>
       )}
     </div>
