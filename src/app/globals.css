@@ -2,46 +2,57 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Light mode (default) ─────────────────── */
 :root {
-  --bg: #0A0B0F;
-  --card: #13141A;
-  --accent: #635BFF;
-  --border: rgba(255, 255, 255, 0.08);
+  --bg:       245 246 250;   /* #F5F6FA  page canvas     */
+  --surface:  255 255 255;   /* #FFFFFF  cards / panels  */
+  --s2:       241 242 248;   /* #F1F2F8  inner elements  */
+  --t1:        17  24  39;   /* #111827  primary text    */
+  --t2:        75  85  99;   /* #4B5563  secondary text  */
+  --t3:       156 163 175;   /* #9CA3AF  muted text      */
+  --accent:    99 102 241;   /* #6366F1  indigo          */
+  --accent-h:  79  70 229;   /* #4F46E5  accent hover    */
+  --sidebar:  255 255 255;   /* white sidebar            */
 }
 
-html {
-  background: var(--bg);
-  color: #f0f0f5;
+/* ── Dark mode ────────────────────────────── */
+html.dark {
+  --bg:        10  11  15;
+  --surface:   19  20  26;
+  --s2:        26  27  36;
+  --t1:       240 240 245;
+  --t2:       160 163 172;
+  --t3:       100 104 115;
+  --accent:   129 140 248;   /* #818CF8 lighter in dark  */
+  --accent-h:  99 102 241;   /* #6366F1                  */
+  --sidebar:   13  14  20;
+}
+
+html,
+body {
+  background: rgb(var(--bg));
+  color: rgb(var(--t1));
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-body {
-  background: var(--bg);
   min-height: 100dvh;
   font-family: Inter, system-ui, -apple-system, sans-serif;
 }
 
-/* Thin scrollbar */
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }
+::-webkit-scrollbar            { width: 5px; height: 5px; }
+::-webkit-scrollbar-track      { background: transparent; }
+::-webkit-scrollbar-thumb      { background: rgb(var(--t3) / 0.35); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover{ background: rgb(var(--t3) / 0.55); }
 
-/* Focus ring using accent */
 *:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid rgb(var(--accent));
   outline-offset: 2px;
   border-radius: 4px;
 }
 
-/* Remove default textarea resize handle chrome */
 textarea { resize: none; }
 
-@layer utilities {
-  .border-subtle { border-color: rgba(255, 255, 255, 0.08); }
-  .bg-card { background: #13141A; }
-  .bg-card-hover:hover { background: #1A1B24; }
-  .text-muted { color: rgba(255, 255, 255, 0.45); }
-  .text-secondary { color: rgba(255, 255, 255, 0.65); }
+/* date / datetime-local input icon colour-scheme fix */
+html.dark input[type="date"],
+html.dark input[type="datetime-local"] {
+  color-scheme: dark;
 }

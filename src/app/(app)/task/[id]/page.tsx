@@ -9,16 +9,18 @@ import StatusChip from '@/components/StatusChip';
 import { useUndo } from '@/components/UndoProvider';
 
 const ACTION_ICONS: Partial<Record<ActivityAction, string>> = {
-  created: '✦',
+  created:       '✦',
   ai_classified: '◆',
-  ai_scheduled: '◇',
-  edited: '✎',
-  moved: '↑',
-  reminded: '⏰',
-  completed: '✓',
-  deleted: '✕',
-  undone: '↩',
+  ai_scheduled:  '◇',
+  edited:        '✎',
+  moved:         '↑',
+  reminded:      '⏰',
+  completed:     '✓',
+  deleted:       '✕',
+  undone:        '↩',
 };
+
+const fieldCls = 'w-full bg-s2 border border-t1/[0.08] rounded-xl px-3 py-2.5 text-t1 text-sm outline-none focus:border-accent/40 transition-colors';
 
 export default function TaskDetailPage() {
   const { id } = useParams() as { id: string };
@@ -49,7 +51,7 @@ export default function TaskDetailPage() {
     setLoading(false);
   }
 
-  useEffect(() => { loadAll(); }, [id]);
+  useEffect(() => { loadAll(); }, [id]); // eslint-disable-line
 
   async function patch(field: string, value: unknown) {
     if (!task) return;
@@ -93,24 +95,9 @@ export default function TaskDetailPage() {
     router.push('/today');
   }
 
-  async function undoLastEdit() {
-    const lastEdit = logs.find((l) => l.action === 'edited' || l.action === 'moved');
-    if (!lastEdit?.meta) return;
-    const { field, old_value } = lastEdit.meta as { field: string; old_value: unknown };
-    await patch(field, old_value);
-    await fetch(`/api/tasks/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ field: 'status', value: task?.status }),
-    });
-    // Log undone action
-    await fetch(`/api/activity`, { method: 'GET' }); // trigger reload
-    loadAll();
-  }
-
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-dvh text-white/30 text-sm">
+      <div className="flex items-center justify-center min-h-dvh text-t3 text-sm">
         Loading…
       </div>
     );
@@ -119,8 +106,8 @@ export default function TaskDetailPage() {
   if (!task) {
     return (
       <div className="flex flex-col items-center justify-center min-h-dvh gap-4">
-        <p className="text-white/40 text-sm">Task not found</p>
-        <button onClick={() => router.back()} className="text-accent text-sm">Go back</button>
+        <p className="text-t3 text-sm">Task not found</p>
+        <button onClick={() => router.back()} className="text-accent text-sm font-medium">← Go back</button>
       </div>
     );
   }
@@ -128,29 +115,34 @@ export default function TaskDetailPage() {
   const hasEdits = logs.some((l) => l.action === 'edited' || l.action === 'moved');
 
   return (
-    <div className="px-4 md:px-8 pt-8 max-w-2xl mx-auto">
+    <div className="px-5 md:px-8 pt-8 max-w-2xl mx-auto">
       <button
         onClick={() => router.back()}
-        className="flex items-center gap-1.5 text-white/40 hover:text-white/70 text-sm mb-6 transition-colors"
+        className="flex items-center gap-1.5 text-t3 hover:text-t1 text-sm mb-6 transition-colors font-medium"
       >
         ← Back
       </button>
 
-      <div className="bg-card border border-white/8 rounded-2xl p-6 mb-6">
+      <div className="bg-surface border border-t1/[0.06] rounded-2xl p-6 mb-6 shadow-card">
         <div className="flex items-start justify-between gap-4 mb-6">
           <StatusChip status={task.status} />
           <div className="flex items-center gap-2">
             {hasEdits && (
               <button
-                onClick={undoLastEdit}
-                className="text-xs text-white/40 hover:text-white/70 transition-colors px-3 py-1 rounded-lg hover:bg-white/5"
+                onClick={async () => {
+                  const lastEdit = logs.find((l) => l.action === 'edited' || l.action === 'moved');
+                  if (!lastEdit?.meta) return;
+                  const { field, old_value } = lastEdit.meta as { field: string; old_value: unknown };
+                  await patch(field, old_value);
+                }}
+                className="text-xs text-t3 hover:text-t1 transition-colors px-3 py-1 rounded-lg hover:bg-s2"
               >
                 Undo last edit
               </button>
             )}
             <button
               onClick={deleteTask}
-              className="text-xs text-red-400/60 hover:text-red-400 transition-colors px-3 py-1 rounded-lg hover:bg-red-500/10"
+              className="text-xs text-red-500/60 hover:text-red-500 transition-colors px-3 py-1 rounded-lg hover:bg-red-500/10"
             >
               Delete
             </button>
@@ -159,7 +151,7 @@ export default function TaskDetailPage() {
 
         {/* Entry */}
         <div className="mb-5">
-          <label className="block text-xs font-medium text-white/35 uppercase tracking-wider mb-2">Entry</label>
+          <label className="block text-xs font-semibold text-t3 uppercase tracking-wider mb-2">Entry</label>
           <textarea
             value={editEntry}
             onChange={(e) => setEditEntry(e.target.value)}
@@ -170,23 +162,21 @@ export default function TaskDetailPage() {
               }
             }}
             rows={3}
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white/85 text-sm outline-none focus:border-accent/40 transition-colors leading-relaxed"
+            className={`${fieldCls} leading-relaxed`}
           />
           {task.original_entry !== task.refined_entry && task.refined_entry && (
-            <p className="text-xs text-white/25 mt-2">
-              Original: {task.original_entry}
-            </p>
+            <p className="text-xs text-t3 mt-2">Original: {task.original_entry}</p>
           )}
         </div>
 
         {/* Group + Date */}
         <div className="grid grid-cols-2 gap-4 mb-5">
           <div>
-            <label className="block text-xs font-medium text-white/35 uppercase tracking-wider mb-2">Group</label>
+            <label className="block text-xs font-semibold text-t3 uppercase tracking-wider mb-2">Project</label>
             <select
               value={task.group_id ?? ''}
               onChange={(e) => patch('group_id', e.target.value || null)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-white/80 text-sm outline-none focus:border-accent/40"
+              className={fieldCls}
             >
               <option value="">Unassigned</option>
               {groups.map((g) => (
@@ -195,34 +185,35 @@ export default function TaskDetailPage() {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-white/35 uppercase tracking-wider mb-2">Date</label>
+            <label className="block text-xs font-semibold text-t3 uppercase tracking-wider mb-2">Date</label>
             <input
               type="date"
               value={task.assigned_date ?? ''}
               onChange={(e) => patch('assigned_date', e.target.value || null)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-white/80 text-sm outline-none focus:border-accent/40"
+              className={fieldCls}
             />
           </div>
         </div>
 
         {/* Reminder */}
         <div className="mb-5">
-          <label className="block text-xs font-medium text-white/35 uppercase tracking-wider mb-2">Reminder</label>
+          <label className="block text-xs font-semibold text-t3 uppercase tracking-wider mb-2">Reminder</label>
           <input
             type="datetime-local"
             value={task.reminder_time ? task.reminder_time.slice(0, 16) : ''}
             onChange={(e) => patch('reminder_time', e.target.value ? e.target.value + ':00Z' : null)}
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-white/80 text-sm outline-none focus:border-accent/40"
+            className={fieldCls}
           />
         </div>
 
         {/* Status */}
         <div className="mb-4">
-          <label className="block text-xs font-medium text-white/35 uppercase tracking-wider mb-2">Status</label>
+          <label className="block text-xs font-semibold text-t3 uppercase tracking-wider mb-2">Status</label>
           <select
             value={task.status}
             onChange={(e) => patch('status', e.target.value)}
-            className="bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-white/80 text-sm outline-none focus:border-accent/40"
+            className={fieldCls}
+            style={{ width: 'auto' }}
           >
             {['processing', 'active', 'needs_review', 'completed', 'deleted'].map((s) => (
               <option key={s} value={s}>{s}</option>
@@ -232,36 +223,35 @@ export default function TaskDetailPage() {
 
         {/* AI info */}
         {task.ai_reasoning && (
-          <div className="border-t border-white/8 pt-4 mt-4">
-            <p className="text-xs text-white/25 leading-relaxed">
-              <span className="text-violet-400/60 font-medium">AI reasoning: </span>
+          <div className="border-t border-t1/[0.06] pt-4 mt-4">
+            <p className="text-xs text-t3 leading-relaxed">
+              <span className="text-violet-500 font-semibold">AI reasoning: </span>
               {task.ai_reasoning}
             </p>
             {task.ai_confidence !== null && (
-              <p className="text-xs text-white/20 mt-1">Confidence: {task.ai_confidence}%</p>
+              <p className="text-xs text-t3 mt-1">Confidence: {task.ai_confidence}%</p>
             )}
           </div>
         )}
 
-        {/* Recurring */}
         {task.is_recurring && (
-          <div className="border-t border-white/8 pt-4 mt-4 flex items-center gap-2">
-            <span className="text-violet-400 text-sm">↻</span>
-            <span className="text-white/50 text-sm">Recurring: {task.recurring_pattern}</span>
+          <div className="border-t border-t1/[0.06] pt-4 mt-4 flex items-center gap-2">
+            <span className="text-accent text-sm">↻</span>
+            <span className="text-t2 text-sm">Recurring: {task.recurring_pattern}</span>
           </div>
         )}
 
-        <div className="border-t border-white/8 pt-4 mt-4 flex items-center gap-4 text-xs text-white/25">
+        <div className="border-t border-t1/[0.06] pt-4 mt-4 flex items-center gap-4 text-xs text-t3">
           <span>Source: {task.source}</span>
           <span>Created: {format(parseISO(task.created_at), 'MMM d, yyyy HH:mm')}</span>
         </div>
       </div>
 
-      {/* Audit timeline */}
+      {/* Timeline */}
       <div>
-        <h2 className="text-xs font-semibold text-white/35 uppercase tracking-widest mb-4">Timeline</h2>
+        <h2 className="text-xs font-semibold text-t3 uppercase tracking-widest mb-4">Timeline</h2>
         <div className="relative">
-          <div className="absolute left-3.5 top-0 bottom-0 w-px bg-white/8" />
+          <div className="absolute left-3.5 top-0 bottom-0 w-px bg-t1/[0.06]" />
           <div className="space-y-4">
             {logs.map((log) => (
               <motion.div
@@ -270,19 +260,19 @@ export default function TaskDetailPage() {
                 animate={{ opacity: 1, x: 0 }}
                 className="flex gap-3 relative"
               >
-                <div className="w-7 h-7 flex-shrink-0 flex items-center justify-center bg-card border border-white/10 rounded-full text-xs relative z-10">
+                <div className="w-7 h-7 flex-shrink-0 flex items-center justify-center bg-surface border border-t1/[0.08] rounded-full text-xs relative z-10 shadow-card">
                   {ACTION_ICONS[log.action] ?? '·'}
                 </div>
                 <div className="flex-1 min-w-0 pt-1">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-xs font-medium text-white/60">{log.action}</span>
-                    <span className="text-xs text-white/25">{log.actor}</span>
-                    <span className="text-xs text-white/20 ml-auto">
+                    <span className="text-xs font-semibold text-t2">{log.action}</span>
+                    <span className="text-xs text-t3">{log.actor}</span>
+                    <span className="text-xs text-t3 ml-auto tabular-nums">
                       {format(parseISO(log.created_at), 'MMM d HH:mm')}
                     </span>
                   </div>
                   {log.meta && Object.keys(log.meta).length > 0 && (
-                    <p className="text-xs text-white/25 mt-0.5 break-all">
+                    <p className="text-xs text-t3 mt-0.5 break-all">
                       {JSON.stringify(log.meta).slice(0, 120)}
                     </p>
                   )}

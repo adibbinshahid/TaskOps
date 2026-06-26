@@ -1,6 +1,7 @@
 import type { Config } from 'tailwindcss';
 
 const config: Config = {
+  darkMode: 'class',
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -9,36 +10,45 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        bg: '#0A0B0F',
-        card: '#13141A',
-        'card-hover': '#1A1B24',
-        accent: '#635BFF',
-        'accent-hover': '#4F46E5',
-        'accent-muted': 'rgba(99,91,255,0.15)',
+        bg:          'rgb(var(--bg)       / <alpha-value>)',
+        surface:     'rgb(var(--surface)  / <alpha-value>)',
+        s2:          'rgb(var(--s2)       / <alpha-value>)',
+        t1:          'rgb(var(--t1)       / <alpha-value>)',
+        t2:          'rgb(var(--t2)       / <alpha-value>)',
+        t3:          'rgb(var(--t3)       / <alpha-value>)',
+        accent:      'rgb(var(--accent)   / <alpha-value>)',
+        'accent-h':  'rgb(var(--accent-h) / <alpha-value>)',
+        sidebar:     'rgb(var(--sidebar)  / <alpha-value>)',
+        // backward-compat aliases
+        'accent-hover': 'rgb(var(--accent-h) / <alpha-value>)',
+        card:        'rgb(var(--surface)  / <alpha-value>)',
+        'card-hover':'rgb(var(--s2)       / <alpha-value>)',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
-      borderColor: {
-        DEFAULT: 'rgba(255,255,255,0.08)',
+      boxShadow: {
+        card:    '0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04)',
+        'card-md':'0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.07)',
+        modal:   '0 20px 60px rgba(0,0,0,0.15), 0 8px 24px rgba(0,0,0,0.08)',
       },
       keyframes: {
         drift: {
           '0%, 100%': { transform: 'translate(0, 0) scale(1)' },
-          '33%': { transform: 'translate(40px, -60px) scale(1.08)' },
-          '66%': { transform: 'translate(-30px, 30px) scale(0.92)' },
+          '33%':       { transform: 'translate(40px, -60px) scale(1.08)' },
+          '66%':       { transform: 'translate(-30px, 30px) scale(0.92)' },
         },
         'drift-slow': {
           '0%, 100%': { transform: 'translate(0, 0) scale(1)' },
-          '50%': { transform: 'translate(-50px, 40px) scale(1.12)' },
+          '50%':       { transform: 'translate(-50px, 40px) scale(1.12)' },
         },
         'pulse-ring': {
-          '0%': { transform: 'scale(1)', opacity: '1' },
+          '0%':   { transform: 'scale(1)', opacity: '1' },
           '100%': { transform: 'scale(1.5)', opacity: '0' },
         },
       },
       animation: {
-        drift: 'drift 18s ease-in-out infinite',
+        drift:        'drift 18s ease-in-out infinite',
         'drift-slow': 'drift-slow 24s ease-in-out infinite',
         'pulse-ring': 'pulse-ring 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },

@@ -46,18 +46,18 @@ export default function UndoProvider({ children }: { children: ReactNode }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-[#1A1B24] border border-white/12 rounded-2xl px-4 py-3 shadow-xl"
+            className="fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-surface border border-t1/[0.10] rounded-2xl px-4 py-3 shadow-modal"
           >
-            <span className="text-white/70 text-sm">{action.label}</span>
+            <span className="text-t2 text-sm">{action.label}</span>
             <button
               onClick={handleUndo}
-              className="text-accent text-sm font-semibold hover:text-accent-hover transition-colors"
+              className="text-accent text-sm font-semibold hover:text-accent-h transition-colors"
             >
               Undo
             </button>
             <button
               onClick={() => setAction(null)}
-              className="text-white/30 hover:text-white/60 transition-colors ml-1"
+              className="text-t3 hover:text-t2 transition-colors ml-1"
               aria-label="Dismiss"
             >
               ✕

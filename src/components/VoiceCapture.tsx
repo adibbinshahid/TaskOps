@@ -47,22 +47,17 @@ export default function VoiceCapture({ onCapture }: VoiceCaptureProps) {
     setRecording(false);
   }
 
-  function toggle() {
-    if (recording) stopRecording();
-    else startRecording();
-  }
-
   return (
     <div className="relative">
       <motion.button
         type="button"
-        onClick={toggle}
+        onClick={recording ? stopRecording : startRecording}
         disabled={processing}
         whileTap={{ scale: 0.92 }}
-        className={`relative flex items-center justify-center w-10 h-10 rounded-xl transition-colors ${
+        className={`relative flex items-center justify-center w-9 h-9 rounded-xl transition-colors ${
           recording
-            ? 'bg-red-500/20 text-red-400'
-            : 'bg-white/6 hover:bg-white/10 text-white/50 hover:text-white/80'
+            ? 'bg-red-500/15 text-red-500'
+            : 'bg-s2 hover:bg-t1/[0.08] text-t3 hover:text-t2'
         } disabled:opacity-40`}
         aria-label={recording ? 'Stop recording' : 'Start voice capture'}
       >
@@ -86,7 +81,7 @@ export default function VoiceCapture({ onCapture }: VoiceCaptureProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs text-white/40 whitespace-nowrap"
+            className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs text-t3 whitespace-nowrap"
           >
             Processing…
           </motion.span>

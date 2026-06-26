@@ -7,15 +7,15 @@ import type { ActivityLog, ActivityAction } from '@/types';
 import Link from 'next/link';
 
 const ACTION_LABELS: Record<ActivityAction, { label: string; color: string; icon: string }> = {
-  created: { label: 'Created', color: 'text-blue-400', icon: '✦' },
-  ai_classified: { label: 'AI classified', color: 'text-violet-400', icon: '◆' },
-  ai_scheduled: { label: 'AI scheduled', color: 'text-indigo-400', icon: '◇' },
-  edited: { label: 'Edited', color: 'text-white/60', icon: '✎' },
-  moved: { label: 'Moved', color: 'text-cyan-400', icon: '↑' },
-  reminded: { label: 'Reminded', color: 'text-amber-400', icon: '⏰' },
-  completed: { label: 'Completed', color: 'text-emerald-400', icon: '✓' },
-  deleted: { label: 'Deleted', color: 'text-red-400', icon: '✕' },
-  undone: { label: 'Undone', color: 'text-orange-400', icon: '↩' },
+  created:       { label: 'Created',       color: 'text-blue-500',    icon: '✦' },
+  ai_classified: { label: 'AI classified', color: 'text-violet-500',  icon: '◆' },
+  ai_scheduled:  { label: 'AI scheduled',  color: 'text-indigo-500',  icon: '◇' },
+  edited:        { label: 'Edited',        color: 'text-t2',          icon: '✎' },
+  moved:         { label: 'Moved',         color: 'text-cyan-500',    icon: '↑' },
+  reminded:      { label: 'Reminded',      color: 'text-amber-500',   icon: '⏰' },
+  completed:     { label: 'Completed',     color: 'text-emerald-500', icon: '✓' },
+  deleted:       { label: 'Deleted',       color: 'text-red-500',     icon: '✕' },
+  undone:        { label: 'Undone',        color: 'text-orange-500',  icon: '↩' },
 };
 
 const ACTION_OPTIONS: ActivityAction[] = [
@@ -41,7 +41,7 @@ export default function ActivityPage() {
     setLoading(false);
   }
 
-  useEffect(() => { loadLogs(); }, [actionFilter, startDate, endDate]);
+  useEffect(() => { loadLogs(); }, [actionFilter, startDate, endDate]); // eslint-disable-line
 
   function groupByDate(items: ActivityLog[]) {
     const groups: Record<string, ActivityLog[]> = {};
@@ -55,16 +55,18 @@ export default function ActivityPage() {
 
   const grouped = groupByDate(logs);
 
+  const inputCls = 'bg-surface border border-t1/[0.08] rounded-xl px-3 py-1.5 text-t1 text-sm outline-none focus:border-accent/40 transition-colors shadow-card';
+
   return (
-    <div className="px-4 md:px-8 pt-8 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-semibold text-white mb-6 tracking-tight">Activity Log</h1>
+    <div className="px-5 md:px-8 pt-8 max-w-3xl mx-auto">
+      <h1 className="text-2xl font-bold text-t1 mb-6 tracking-tight">Activity Log</h1>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-2 mb-6">
         <select
           value={actionFilter}
           onChange={(e) => setActionFilter(e.target.value)}
-          className="bg-card border border-white/10 rounded-xl px-3 py-1.5 text-white/70 text-sm outline-none"
+          className={inputCls}
         >
           <option value="">All actions</option>
           {ACTION_OPTIONS.map((a) => (
@@ -75,18 +77,18 @@ export default function ActivityPage() {
           type="date"
           value={startDate}
           onChange={(e) => setStartDate(e.target.value)}
-          className="bg-card border border-white/10 rounded-xl px-3 py-1.5 text-white/70 text-sm outline-none"
+          className={inputCls}
         />
         <input
           type="date"
           value={endDate}
           onChange={(e) => setEndDate(e.target.value)}
-          className="bg-card border border-white/10 rounded-xl px-3 py-1.5 text-white/70 text-sm outline-none"
+          className={inputCls}
         />
         {(actionFilter || startDate || endDate) && (
           <button
             onClick={() => { setActionFilter(''); setStartDate(''); setEndDate(''); }}
-            className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/50 text-sm rounded-xl transition-colors"
+            className="px-3 py-1.5 bg-s2 hover:bg-t1/[0.08] text-t2 text-sm rounded-xl transition-colors font-medium"
           >
             Clear
           </button>
@@ -94,44 +96,47 @@ export default function ActivityPage() {
       </div>
 
       {loading ? (
-        <div className="text-center text-white/30 text-sm py-12">Loading…</div>
+        <div className="text-center text-t3 text-sm py-12">Loading…</div>
       ) : logs.length === 0 ? (
-        <div className="text-center text-white/25 text-sm py-12">No activity found</div>
+        <div className="text-center text-t3 text-sm py-12">No activity found</div>
       ) : (
         <div className="space-y-8">
           {Object.entries(grouped).map(([date, items]) => (
             <section key={date}>
-              <h2 className="text-xs font-semibold text-white/35 uppercase tracking-widest mb-3">
+              <h2 className="text-xs font-semibold text-t3 uppercase tracking-widest mb-3">
                 {format(parseISO(date), 'EEEE, MMMM d')}
               </h2>
               <div className="space-y-2">
                 {items.map((log) => {
-                  const config = ACTION_LABELS[log.action] ?? { label: log.action, color: 'text-white/50', icon: '·' };
+                  const cfg = ACTION_LABELS[log.action] ?? { label: log.action, color: 'text-t3', icon: '·' };
                   const taskEntry = log.tasks?.refined_entry ?? log.tasks?.original_entry;
                   return (
                     <motion.div
                       key={log.id}
                       initial={{ opacity: 0, x: -4 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className="flex items-start gap-3 bg-card border border-white/6 rounded-xl px-4 py-3"
+                      className="flex items-start gap-3 bg-surface border border-t1/[0.06] rounded-xl px-4 py-3 shadow-card"
                     >
-                      <span className={`text-sm flex-shrink-0 ${config.color}`}>{config.icon}</span>
+                      <span className={`text-sm flex-shrink-0 mt-0.5 ${cfg.color}`}>{cfg.icon}</span>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className={`text-xs font-medium ${config.color}`}>{config.label}</span>
-                          <span className="text-white/20 text-xs">·</span>
-                          <span className="text-white/30 text-xs">{log.actor}</span>
-                          <span className="text-white/20 text-xs ml-auto">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`text-xs font-semibold ${cfg.color}`}>{cfg.label}</span>
+                          <span className="text-t3 text-xs">·</span>
+                          <span className="text-t3 text-xs">{log.actor}</span>
+                          <span className="text-t3 text-xs ml-auto tabular-nums">
                             {format(parseISO(log.created_at), 'HH:mm')}
                           </span>
                         </div>
                         {taskEntry && (
-                          <Link href={`/task/${log.task_id}`} className="text-sm text-white/55 hover:text-white/80 transition-colors mt-0.5 block truncate">
+                          <Link
+                            href={`/task/${log.task_id}`}
+                            className="text-sm text-t2 hover:text-t1 transition-colors mt-0.5 block truncate"
+                          >
                             {taskEntry}
                           </Link>
                         )}
                         {log.meta && Object.keys(log.meta).length > 0 && (
-                          <p className="text-xs text-white/25 mt-0.5 truncate">
+                          <p className="text-xs text-t3 mt-0.5 truncate">
                             {JSON.stringify(log.meta).slice(0, 80)}
                           </p>
                         )}

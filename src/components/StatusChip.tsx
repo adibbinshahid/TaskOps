@@ -4,24 +4,24 @@ import type { TaskStatus } from '@/types';
 
 const CONFIG: Record<TaskStatus, { label: string; classes: string }> = {
   processing: {
-    label: 'Organizing…',
-    classes: 'bg-white/8 text-white/50 animate-pulse',
+    label: 'Organising…',
+    classes: 'bg-violet-500/10 text-violet-600 dark:text-violet-400',
   },
   active: {
     label: 'Active',
-    classes: 'bg-accent/15 text-accent',
+    classes: 'bg-accent/10 text-accent',
   },
   needs_review: {
     label: 'Review',
-    classes: 'bg-amber-500/15 text-amber-400',
+    classes: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
   },
   completed: {
     label: 'Done',
-    classes: 'bg-emerald-500/15 text-emerald-400',
+    classes: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
   },
   deleted: {
     label: 'Deleted',
-    classes: 'bg-white/5 text-white/25 line-through',
+    classes: 'bg-t1/5 text-t3 line-through',
   },
 };
 
