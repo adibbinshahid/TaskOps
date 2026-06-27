@@ -310,7 +310,18 @@ export default function AllTasksPage() {
     loadTasks();
     const channel = supabase
       .channel('all-tasks-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, () => loadTasks())
+      // UPDATE: merge into local state — never re-fetch, avoids race where
+      // another task's update triggers loadTasks() while user's PATCH is in-flight
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'tasks' }, (payload) => {
+        const updated = payload.new as Task;
+        setTasks((prev) => {
+          const exists = prev.some((t) => t.id === updated.id);
+          if (!exists) return prev;
+          return prev.map((t) => t.id === updated.id ? { ...t, ...updated } : t);
+        });
+      })
+      // INSERT: full reload so new task lands in the right date column/group
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'tasks' }, () => loadTasks())
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [loadTasks]);
@@ -319,12 +330,17 @@ export default function AllTasksPage() {
     const task = tasks.find((t) => t.id === taskId);
     if (!task) return;
     const newStatus = task.status === 'completed' ? 'active' : 'completed';
+    // Optimistic update — Realtime merge will confirm it, never overwrite with stale data
     setTasks((prev) => prev.map((t) => t.id === taskId ? { ...t, status: newStatus } : t));
-    await fetch(`/api/tasks/${taskId}`, {
+    const res = await fetch(`/api/tasks/${taskId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ field: 'status', value: newStatus }),
     });
+    if (!res.ok) {
+      // Revert if API call failed
+      setTasks((prev) => prev.map((t) => t.id === taskId ? { ...t, status: task.status } : t));
+    }
   }
 
   function handleDragStart(event: DragStartEvent) {

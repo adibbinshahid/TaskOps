@@ -84,7 +84,15 @@ export default function DashboardPage() {
     loadData().finally(() => setLoading(false));
     const channel = supabase
       .channel('dashboard-tasks')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, loadData)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'tasks' }, (payload) => {
+        const updated = payload.new as Task;
+        setTasks((prev) => {
+          const exists = prev.some((t) => t.id === updated.id);
+          if (!exists) return prev;
+          return prev.map((t) => t.id === updated.id ? { ...t, ...updated } : t);
+        });
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'tasks' }, loadData)
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
