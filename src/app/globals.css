@@ -2,57 +2,202 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Light mode (default) ─────────────────── */
+/* ── CSS Variables ──────────────────────────────── */
 :root {
-  --bg:       245 246 250;   /* #F5F6FA  page canvas     */
-  --surface:  255 255 255;   /* #FFFFFF  cards / panels  */
-  --s2:       241 242 248;   /* #F1F2F8  inner elements  */
-  --t1:        17  24  39;   /* #111827  primary text    */
-  --t2:        75  85  99;   /* #4B5563  secondary text  */
-  --t3:       156 163 175;   /* #9CA3AF  muted text      */
-  --accent:    99 102 241;   /* #6366F1  indigo          */
-  --accent-h:  79  70 229;   /* #4F46E5  accent hover    */
-  --sidebar:  255 255 255;   /* white sidebar            */
+  --bg:       235 237 248;
+  --surface:  255 255 255;
+  --s2:       226 228 240;
+  --t1:        17  24  39;
+  --t2:        75  85  99;
+  --t3:       140 148 163;
+  --accent:    99 102 241;
+  --accent-h:  79  70 229;
+  --sidebar:  255 255 255;
 }
 
-/* ── Dark mode ────────────────────────────── */
 html.dark {
-  --bg:        10  11  15;
-  --surface:   19  20  26;
-  --s2:        26  27  36;
-  --t1:       240 240 245;
-  --t2:       160 163 172;
-  --t3:       100 104 115;
-  --accent:   129 140 248;   /* #818CF8 lighter in dark  */
-  --accent-h:  99 102 241;   /* #6366F1                  */
-  --sidebar:   13  14  20;
+  --bg:         8   9  14;
+  --surface:   16  17  24;
+  --s2:        22  24  34;
+  --t1:       238 240 248;
+  --t2:       158 162 176;
+  --t3:        90  95 112;
+  --accent:   139 148 255;
+  --accent-h:  99 102 241;
+  --sidebar:   10  11  18;
 }
 
-html,
-body {
-  background: rgb(var(--bg));
+/* ── Base ───────────────────────────────────────── */
+html, body {
   color: rgb(var(--t1));
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100dvh;
-  font-family: Inter, system-ui, -apple-system, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text',
+    Inter, system-ui, sans-serif;
 }
 
-::-webkit-scrollbar            { width: 5px; height: 5px; }
-::-webkit-scrollbar-track      { background: transparent; }
-::-webkit-scrollbar-thumb      { background: rgb(var(--t3) / 0.35); border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover{ background: rgb(var(--t3) / 0.55); }
+/* iOS-style vibrant mesh — glass only looks great with rich background */
+body {
+  background:
+    radial-gradient(ellipse 90% 80% at 0%   0%,   rgba(168, 85,247, 0.22) 0%, transparent 50%),
+    radial-gradient(ellipse 70% 60% at 100% 0%,   rgba(99, 102,241, 0.18) 0%, transparent 45%),
+    radial-gradient(ellipse 60% 70% at 50%  100%, rgba(59, 130,246, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 50% at 80%  60%,  rgba(236, 72,153, 0.08) 0%, transparent 45%),
+    rgb(var(--bg));
+  background-attachment: fixed;
+}
 
+html.dark body {
+  background:
+    radial-gradient(ellipse 90% 80% at 0%   0%,   rgba(139, 92,246, 0.30) 0%, transparent 50%),
+    radial-gradient(ellipse 70% 60% at 100% 0%,   rgba(99, 102,241, 0.24) 0%, transparent 45%),
+    radial-gradient(ellipse 60% 70% at 50%  100%, rgba(59, 130,246, 0.20) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 50% at 80%  60%,  rgba(217, 70,239, 0.12) 0%, transparent 45%),
+    rgb(var(--bg));
+  background-attachment: fixed;
+}
+
+/* ── Scrollbar ──────────────────────────────────── */
+::-webkit-scrollbar         { width: 4px; height: 4px; }
+::-webkit-scrollbar-track   { background: transparent; }
+::-webkit-scrollbar-thumb   { background: rgb(var(--t3) / 0.25); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: rgb(var(--t3) / 0.45); }
+
+/* ── Focus ──────────────────────────────────────── */
 *:focus-visible {
-  outline: 2px solid rgb(var(--accent));
+  outline: 2px solid rgb(var(--accent) / 0.6);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
 textarea { resize: none; }
 
-/* date / datetime-local input icon colour-scheme fix */
 html.dark input[type="date"],
-html.dark input[type="datetime-local"] {
-  color-scheme: dark;
+html.dark input[type="datetime-local"] { color-scheme: dark; }
+
+/* ── Glassmorphism ──────────────────────────────── */
+@layer utilities {
+
+  /* Sidebar / top header — subtle tint */
+  .glass {
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    background: rgba(255,255,255,0.68);
+    border-color: rgba(255,255,255,0.45);
+  }
+  html.dark .glass {
+    background: rgba(10,11,18,0.72);
+    border-color: rgba(255,255,255,0.08);
+  }
+
+  /* Toolbar items, chips, secondary surfaces */
+  .glass-sm {
+    backdrop-filter: blur(12px) saturate(160%);
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    background: rgba(255,255,255,0.50);
+    border: 1px solid rgba(255,255,255,0.35);
+  }
+  html.dark .glass-sm {
+    background: rgba(22,24,34,0.55);
+    border: 1px solid rgba(255,255,255,0.07);
+  }
+
+  /* Cards — the main surface floating on gradient bg */
+  .glass-card {
+    backdrop-filter: blur(24px) saturate(200%);
+    -webkit-backdrop-filter: blur(24px) saturate(200%);
+    background: rgba(255,255,255,0.62);
+    border: 1px solid rgba(255,255,255,0.50);
+    box-shadow:
+      0 2px 12px rgba(0,0,0,0.06),
+      0 1px  3px rgba(0,0,0,0.04),
+      inset 0 1px 0 rgba(255,255,255,0.70);
+  }
+  html.dark .glass-card {
+    background: rgba(22,24,34,0.58);
+    border: 1px solid rgba(255,255,255,0.09);
+    box-shadow:
+      0 4px 24px rgba(0,0,0,0.28),
+      0 1px  4px rgba(0,0,0,0.16),
+      inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+
+  /* Modals, toasts, overlays — max frosted */
+  .glass-strong {
+    backdrop-filter: blur(40px) saturate(220%);
+    -webkit-backdrop-filter: blur(40px) saturate(220%);
+    background: rgba(255,255,255,0.80);
+    border: 1px solid rgba(255,255,255,0.55);
+    box-shadow:
+      0 8px 40px rgba(0,0,0,0.10),
+      0 2px  8px rgba(0,0,0,0.06),
+      inset 0 1px 0 rgba(255,255,255,0.80);
+  }
+  html.dark .glass-strong {
+    background: rgba(10,11,18,0.82);
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow:
+      0 8px 40px rgba(0,0,0,0.40),
+      0 2px  8px rgba(0,0,0,0.22),
+      inset 0 1px 0 rgba(255,255,255,0.07);
+  }
+
+  /* Form inputs sitting inside glass cards */
+  .glass-input {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    background: rgba(255,255,255,0.45);
+    border: 1px solid rgba(255,255,255,0.40);
+  }
+  html.dark .glass-input {
+    background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+}
+
+/* ── Animations ─────────────────────────────────── */
+@keyframes slide-in-right {
+  from { transform: translateX(110%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+@keyframes slide-out-right {
+  from { transform: translateX(0);    opacity: 1; }
+  to   { transform: translateX(110%); opacity: 0; }
+}
+@keyframes fade-up {
+  from { transform: translateY(12px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+@keyframes pulse-ring {
+  0%   { transform: scale(1);   opacity: 1; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+.animate-slide-in-right  { animation: slide-in-right  0.38s cubic-bezier(0.16,1,0.3,1) forwards; }
+.animate-slide-out-right { animation: slide-out-right 0.28s ease-in forwards; }
+.animate-fade-up         { animation: fade-up         0.40s cubic-bezier(0.16,1,0.3,1) forwards; }
+.animate-pulse-ring      { animation: pulse-ring 1.4s cubic-bezier(0.4,0,0.6,1) infinite; }
+
+.skeleton {
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.3) 25%,
+    rgba(255,255,255,0.6) 50%,
+    rgba(255,255,255,0.3) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+html.dark .skeleton {
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.04) 25%,
+    rgba(255,255,255,0.09) 50%,
+    rgba(255,255,255,0.04) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
 }

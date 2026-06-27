@@ -20,7 +20,7 @@ const ACTION_ICONS: Partial<Record<ActivityAction, string>> = {
   undone:        '↩',
 };
 
-const fieldCls = 'w-full bg-s2 border border-t1/[0.08] rounded-xl px-3 py-2.5 text-t1 text-sm outline-none focus:border-accent/40 transition-colors';
+const fieldCls = 'w-full glass-input rounded-xl px-3 py-2.5 text-t1 text-sm outline-none focus:ring-1 focus:ring-accent/40 transition-all';
 
 export default function TaskDetailPage() {
   const { id } = useParams() as { id: string };
@@ -57,13 +57,11 @@ export default function TaskDetailPage() {
     if (!task) return;
     const oldValue = task[field as keyof Task];
     setTask((prev) => prev ? { ...prev, [field]: value } : prev);
-
     await fetch(`/api/tasks/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ field, value }),
     });
-
     showUndo({
       label: `${field} updated`,
       onUndo: async () => {
@@ -75,7 +73,6 @@ export default function TaskDetailPage() {
         loadAll();
       },
     });
-
     loadAll();
   }
 
@@ -97,8 +94,9 @@ export default function TaskDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-dvh text-t3 text-sm">
-        Loading…
+      <div className="px-5 md:px-8 pt-8 max-w-2xl mx-auto">
+        <div className="glass-card rounded-3xl h-64 skeleton mb-4" />
+        <div className="glass-card rounded-3xl h-40 skeleton" />
       </div>
     );
   }
@@ -115,7 +113,7 @@ export default function TaskDetailPage() {
   const hasEdits = logs.some((l) => l.action === 'edited' || l.action === 'moved');
 
   return (
-    <div className="px-5 md:px-8 pt-8 max-w-2xl mx-auto">
+    <div className="px-5 md:px-8 pt-8 max-w-2xl mx-auto pb-12">
       <button
         onClick={() => router.back()}
         className="flex items-center gap-1.5 text-t3 hover:text-t1 text-sm mb-6 transition-colors font-medium"
@@ -123,7 +121,11 @@ export default function TaskDetailPage() {
         ← Back
       </button>
 
-      <div className="bg-surface border border-t1/[0.06] rounded-2xl p-6 mb-6 shadow-card">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="glass-card rounded-3xl p-6 mb-4"
+      >
         <div className="flex items-start justify-between gap-4 mb-6">
           <StatusChip status={task.status} />
           <div className="flex items-center gap-2">
@@ -135,14 +137,14 @@ export default function TaskDetailPage() {
                   const { field, old_value } = lastEdit.meta as { field: string; old_value: unknown };
                   await patch(field, old_value);
                 }}
-                className="text-xs text-t3 hover:text-t1 transition-colors px-3 py-1 rounded-lg hover:bg-s2"
+                className="text-xs text-t3 hover:text-t1 transition-colors px-3 py-1 rounded-xl glass-sm"
               >
                 Undo last edit
               </button>
             )}
             <button
               onClick={deleteTask}
-              className="text-xs text-red-500/60 hover:text-red-500 transition-colors px-3 py-1 rounded-lg hover:bg-red-500/10"
+              className="text-xs text-red-400/70 hover:text-red-400 transition-colors px-3 py-1 rounded-xl hover:bg-red-400/10"
             >
               Delete
             </button>
@@ -157,9 +159,7 @@ export default function TaskDetailPage() {
             onChange={(e) => setEditEntry(e.target.value)}
             onBlur={() => {
               const v = editEntry.trim();
-              if (v && v !== (task.refined_entry ?? task.original_entry)) {
-                patch('refined_entry', v);
-              }
+              if (v && v !== (task.refined_entry ?? task.original_entry)) patch('refined_entry', v);
             }}
             rows={3}
             className={`${fieldCls} leading-relaxed`}
@@ -172,16 +172,14 @@ export default function TaskDetailPage() {
         {/* Group + Date */}
         <div className="grid grid-cols-2 gap-4 mb-5">
           <div>
-            <label className="block text-xs font-semibold text-t3 uppercase tracking-wider mb-2">Project</label>
+            <label className="block text-xs font-semibold text-t3 uppercase tracking-wider mb-2">Task Type</label>
             <select
               value={task.group_id ?? ''}
               onChange={(e) => patch('group_id', e.target.value || null)}
               className={fieldCls}
             >
               <option value="">Unassigned</option>
-              {groups.map((g) => (
-                <option key={g.id} value={g.id}>{g.name}</option>
-              ))}
+              {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
             </select>
           </div>
           <div>
@@ -223,7 +221,7 @@ export default function TaskDetailPage() {
 
         {/* AI info */}
         {task.ai_reasoning && (
-          <div className="border-t border-t1/[0.06] pt-4 mt-4">
+          <div className="glass-sm rounded-2xl px-4 py-3 mt-4">
             <p className="text-xs text-t3 leading-relaxed">
               <span className="text-violet-500 font-semibold">AI reasoning: </span>
               {task.ai_reasoning}
@@ -235,7 +233,7 @@ export default function TaskDetailPage() {
         )}
 
         {task.is_recurring && (
-          <div className="border-t border-t1/[0.06] pt-4 mt-4 flex items-center gap-2">
+          <div className="mt-4 flex items-center gap-2">
             <span className="text-accent text-sm">↻</span>
             <span className="text-t2 text-sm">Recurring: {task.recurring_pattern}</span>
           </div>
@@ -245,22 +243,27 @@ export default function TaskDetailPage() {
           <span>Source: {task.source}</span>
           <span>Created: {format(parseISO(task.created_at), 'MMM d, yyyy HH:mm')}</span>
         </div>
-      </div>
+      </motion.div>
 
       {/* Timeline */}
-      <div>
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
         <h2 className="text-xs font-semibold text-t3 uppercase tracking-widest mb-4">Timeline</h2>
         <div className="relative">
           <div className="absolute left-3.5 top-0 bottom-0 w-px bg-t1/[0.06]" />
           <div className="space-y-4">
-            {logs.map((log) => (
+            {logs.map((log, i) => (
               <motion.div
                 key={log.id}
                 initial={{ opacity: 0, x: -4 }}
                 animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.04 }}
                 className="flex gap-3 relative"
               >
-                <div className="w-7 h-7 flex-shrink-0 flex items-center justify-center bg-surface border border-t1/[0.08] rounded-full text-xs relative z-10 shadow-card">
+                <div className="w-7 h-7 flex-shrink-0 flex items-center justify-center glass-card rounded-full text-xs relative z-10">
                   {ACTION_ICONS[log.action] ?? '·'}
                 </div>
                 <div className="flex-1 min-w-0 pt-1">
@@ -281,7 +284,7 @@ export default function TaskDetailPage() {
             ))}
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

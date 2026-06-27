@@ -13,6 +13,7 @@ export async function POST(request: NextRequest) {
       audioBase64?: string;
       mimeType?: string;
       source?: TaskSource;
+      assigned_date?: string;
     };
 
     if (!body.text?.trim() && !body.audioBase64) {
@@ -23,9 +24,14 @@ export async function POST(request: NextRequest) {
     const source: TaskSource = body.source ?? 'web';
     const originalEntry = body.text?.trim() || '[voice note — transcribing]';
 
+    // Set date immediately so the task is visible in Week/Month views during processing.
+    // AI may override this with a better date in processAsync.
+    const today = new Date().toISOString().slice(0, 10);
+    const initialDate = body.assigned_date ?? today;
+
     const { data: task, error } = await db
       .from('tasks')
-      .insert({ original_entry: originalEntry, status: 'processing', source })
+      .insert({ original_entry: originalEntry, status: 'processing', source, assigned_date: initialDate })
       .select()
       .single();
 
@@ -39,7 +45,7 @@ export async function POST(request: NextRequest) {
     });
 
     // waitUntil keeps Vercel function alive after response is sent
-    waitUntil(processAsync(task.id, { text: body.text, audioBase64: body.audioBase64, mimeType: body.mimeType }, source));
+    waitUntil(processAsync(task.id, { text: body.text, audioBase64: body.audioBase64, mimeType: body.mimeType }, source, body.assigned_date));
 
     return NextResponse.json({ taskId: task.id });
   } catch (err) {
@@ -51,7 +57,8 @@ export async function POST(request: NextRequest) {
 async function processAsync(
   taskId: string,
   input: { text?: string; audioBase64?: string; mimeType?: string },
-  source: TaskSource
+  source: TaskSource,
+  userDate?: string
 ) {
   const db = createServerClient();
   try {
@@ -69,7 +76,7 @@ async function processAsync(
     const updates: Record<string, unknown> = {
       refined_entry: result.refined_entry,
       group_id: group?.id ?? null,
-      assigned_date: result.assigned_date,
+      assigned_date: userDate ?? result.assigned_date,
       reminder_time: result.reminder_time,
       ai_confidence: result.confidence,
       ai_reasoning: result.reasoning,

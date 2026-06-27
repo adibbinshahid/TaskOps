@@ -43,12 +43,14 @@ export default function UndoProvider({ children }: { children: ReactNode }) {
         {action && (
           <motion.div
             key="undo-snackbar"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-surface border border-t1/[0.10] rounded-2xl px-4 py-3 shadow-modal"
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+            className="fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 glass-strong rounded-2xl px-5 py-3"
           >
             <span className="text-t2 text-sm">{action.label}</span>
+            <div className="w-px h-4 bg-t3/30" />
             <button
               onClick={handleUndo}
               className="text-accent text-sm font-semibold hover:text-accent-h transition-colors"
@@ -57,7 +59,7 @@ export default function UndoProvider({ children }: { children: ReactNode }) {
             </button>
             <button
               onClick={() => setAction(null)}
-              className="text-t3 hover:text-t2 transition-colors ml-1"
+              className="text-t3 hover:text-t2 transition-colors ml-1 text-xs"
               aria-label="Dismiss"
             >
               ✕

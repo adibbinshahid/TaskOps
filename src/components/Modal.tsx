@@ -27,18 +27,18 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-black/30 backdrop-blur-md z-40"
             onClick={onClose}
           />
           <motion.div
             key="panel"
-            initial={{ opacity: 0, scale: 0.96, y: 10 }}
+            initial={{ opacity: 0, scale: 0.92, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 10 }}
-            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            exit={{ opacity: 0, scale: 0.92, y: 16 }}
+            transition={{ type: 'spring', stiffness: 380, damping: 30 }}
             className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-sm px-4"
           >
-            <div className="bg-surface border border-t1/[0.08] rounded-2xl p-6 shadow-modal">
+            <div className="glass-strong rounded-3xl p-6">
               <h2 className="text-base font-semibold text-t1 mb-4">{title}</h2>
               {children}
             </div>

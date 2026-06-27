@@ -1,7 +1,7 @@
 export const APP_NAME = 'TaskOps';
 
 export const CONFIDENCE_THRESHOLD = parseInt(
-  process.env.CONFIDENCE_THRESHOLD ?? '50',
+  process.env.CONFIDENCE_THRESHOLD ?? '80',
   10
 );
 

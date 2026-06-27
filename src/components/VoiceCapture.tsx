@@ -53,11 +53,11 @@ export default function VoiceCapture({ onCapture }: VoiceCaptureProps) {
         type="button"
         onClick={recording ? stopRecording : startRecording}
         disabled={processing}
-        whileTap={{ scale: 0.92 }}
-        className={`relative flex items-center justify-center w-9 h-9 rounded-xl transition-colors ${
+        whileTap={{ scale: 0.88 }}
+        className={`relative flex items-center justify-center w-9 h-9 rounded-xl transition-all ${
           recording
-            ? 'bg-red-500/15 text-red-500'
-            : 'bg-s2 hover:bg-t1/[0.08] text-t3 hover:text-t2'
+            ? 'bg-red-500/20 text-red-500 shadow-sm'
+            : 'glass-sm text-t3 hover:text-t2'
         } disabled:opacity-40`}
         aria-label={recording ? 'Stop recording' : 'Start voice capture'}
       >
@@ -71,7 +71,7 @@ export default function VoiceCapture({ onCapture }: VoiceCaptureProps) {
           </svg>
         )}
         {recording && (
-          <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse-ring" />
+          <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse" />
         )}
       </motion.button>
 
